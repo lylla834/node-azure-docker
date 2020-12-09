@@ -1,0 +1,17 @@
+jobs:
+  build:
+    executor: azure-cli/default
+    steps:
+      - azure-cli/install
+      - azure-cli/login-with-user
+      - run:
+          name: Deploy Node Application
+          command: az acr build --registry fikayoregistry --image mynodeimage .
+
+orbs:
+  azure-cli: circleci/azure-cli@1.0.0
+version: 2.1
+workflows:
+  example-workflow:
+    jobs:
+      - build
