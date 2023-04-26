@@ -1,0 +1,51 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy container app to Azure Web App - webapplylla
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: 'ubuntu-latest'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Log in to registry
+      uses: docker/login-action@v1
+      with:
+        registry: https://lyllacontainerhocine699.azurecr.io/
+        username: ${{ secrets.AzureAppService_ContainerUsername_761b21fa17384f2e823cd191b7b67c28 }}
+        password: ${{ secrets.AzureAppService_ContainerPassword_86725c17aae0474a889bd8fd4396e91a }}
+
+    - name: Build and push container image to registry
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: lyllacontainerhocine699.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_761b21fa17384f2e823cd191b7b67c28 }}/node-azure-docker:${{ github.sha }}
+        file: ./Dockerfile
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+    - name: Deploy to Azure Web App
+      id: deploy-to-webapp
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'webapplylla'
+        slot-name: 'production'
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_add5708f5e5c4abebddbe6a157b94fc0 }}
+        images: 'lyllacontainerhocine699.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_761b21fa17384f2e823cd191b7b67c28 }}/node-azure-docker:${{ github.sha }}'
